@@ -77,7 +77,21 @@ ctest --output-on-failure --test-dir=build/tests
 ### Building as a CMake Dependency
 The following is sufficient to import this as a dependency in a Cmake project:
 ```cmake
-TODO
+include(FetchContent)
+
+FetchContent_Declare(
+  tagged_union
+  GIT_REPOSITORY https://github.com/Shizcow/TAGGED_UNION.git
+  GIT_TAG master
+)
+
+# If desired:
+set(TAGGED_UNION_BUILD_TESTS OFF CACHE BOOL "Disable TU tests" FORCE)
+
+FetchContent_MakeAvailable(tagged_union)
+
+# And then later:
+target_link_libraries(your_thing PRIVATE tagged_union)
 ```
 
 ### Bugs
