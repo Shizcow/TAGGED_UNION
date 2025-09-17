@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include <magic_enum.hpp>
-
 #include <boost/version.hpp>
 #ifndef BOOST_VERSION
 #error ("BOOST_VERSION is not defined! Boost is required for TAGGED_UNION.")
@@ -15,18 +13,20 @@
 #include <boost/config.hpp>
 #include <boost/assert.hpp>
 
-#include <boost/preprocessor/punctuation/comma.hpp>
+#include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/facilities/is_empty.hpp>
-#include <boost/preprocessor/cat.hpp>
-#include <boost/preprocessor/variadic/to_seq.hpp>
-#include <boost/preprocessor/seq/for_each.hpp>
+#include <boost/preprocessor/punctuation/comma.hpp>
+#include <boost/preprocessor/seq/elem.hpp>
 #include <boost/preprocessor/seq/enum.hpp>
-#include <boost/preprocessor/seq/transform.hpp>
+#include <boost/preprocessor/seq/for_each.hpp>
 #include <boost/preprocessor/seq/rest_n.hpp>
+#include <boost/preprocessor/seq/reverse.hpp>
+#include <boost/preprocessor/seq/transform.hpp>
 #include <boost/preprocessor/tuple/elem.hpp>
 #include <boost/preprocessor/tuple/to_seq.hpp>
+#include <boost/preprocessor/variadic/to_seq.hpp>
   
 // C++23: brings std::unreachable, but that doesn't work
 //        well with GCC's optimizer sometimes. So do this
@@ -156,6 +156,8 @@ namespace tagged_union::detail {
 // --------------------+++::..                                                  
 #define TAGGED_UNION_ENUM_FROM_TRIPLET(r, data, triplet)	\
   BOOST_PP_TUPLE_ELEM(3, 0, triplet),
+#define TAGGED_UNION_MAX_VARIANT_ENUM(triplets)		      \
+  BOOST_PP_TUPLE_ELEM(3, 0, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(triplets)))
 #define TAGGED_UNION_TYPE_PACK_FROM_TRIPLET(r, data, triplet) \
   BOOST_PP_IF( \
     __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)), \
@@ -446,7 +448,7 @@ namespace tagged_union::detail {
   /* Destructor requires manual management */				\
   /* We use some tricks to make this zero-cost, including: */		\
   /* - Out of band case labels */					\
-  /* - Procedurally generated out-of-band values using magic_enum */	\
+  /* - Procedurally generated out-of-band values */			\
   /* - constexpr if spam */						\
   /* - __TAGGED_UNION_UNREACHABLE spam */				\
   __TAGGED_UNION_ONLY_CPP20_PLUS(constexpr)				\
@@ -456,8 +458,7 @@ namespace tagged_union::detail {
 					     _,				\
 					     BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) { \
     if constexpr (::tagged_union::detail::UseExplicitDestructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) { \
-      auto constexpr values = magic_enum::enum_values<Type>();		\
-      auto constexpr max_val = *std::max_element(values.begin(), values.end()); \
+      auto constexpr max_val = TAGGED_UNION_MAX_VARIANT_ENUM(BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
       switch(type) {							\
 	BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_DTOR_SWITCH_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
       default:;								\
