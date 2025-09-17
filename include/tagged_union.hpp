@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <cassert>
+#include <utility>
 
 #include <boost/version.hpp>
 #ifndef BOOST_VERSION
@@ -172,7 +173,9 @@ namespace tagged_union::detail {
   BOOST_PP_IF(							\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
   /* emit nothing if void*/,						\
-  [[nodiscard]] constexpr const BOOST_PP_TUPLE_ELEM(3, 1, triplet)& BOOST_PP_TUPLE_ELEM(3, 2, triplet)() const { \
+  /* We std::as_const because if this the type is already const, */	\
+  /* like a int const*, then we'll get a duplicate const error */	\
+  [[nodiscard]] constexpr std::add_const_t<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>& BOOST_PP_TUPLE_ELEM(3, 2, triplet)() const { \
     check_type(BOOST_PP_TUPLE_ELEM(3, 0, triplet));			\
     return attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet);			\
   }									\
