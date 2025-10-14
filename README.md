@@ -62,10 +62,10 @@ In this way, `TAGGED_UNION` is as flexible as the types it contains.
 ### Notes on C++ Version
 This library is built to be portable, extremely fast, and sensitive to the C++ version used.
 Although the project officially supports C++17, using C++20 or above will improve language features (e.g. `constexpr` destructors).
-This is all to say that any `TAGGED_UNION` types should act exactly as expected.
+This is all to say that any `TAGGED_UNION` types should act exactly as expected relative to the C++ version currently in use.
 
 Note that while many C++17 features are relied on, the bones of this library could theoretically be written for C++11 (would require replacing `magic_enum`, doing many of the `if constexpr` checks at runtime, etc).
-This is to say, if you're reading this and you *really* want to use this project for an older C++ version, it is possible with effort.
+This is to say, if you're reading this and you *really* want to use this project for an older C++ version, it is possible with effort, though the code will run slower.
 
 ### Building the Tests
 ```sh

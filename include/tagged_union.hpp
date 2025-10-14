@@ -218,8 +218,16 @@ namespace tagged_union::detail {
   case (::tagged_union::detail::constexpr_if_trivial_destructor<BOOST_PP_TUPLE_ELEM(3, 1, triplet)> \
 	(BOOST_PP_TUPLE_ELEM(3, 0, triplet), max_val+1+BOOST_PP_TUPLE_ELEM(3, 0, triplet))): \
   if constexpr(std::is_trivially_destructible_v<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>) { \
-    __TAGGED_UNION_UNREACHABLE();					\
-  } else {								\
+    /* We want to signal to the compiler that this path will never */	\
+    /* be taken for optimization purposes. However, if we include */	\
+    /* an assert, it can trigger in a C++20 constexpr destructor */	\
+    /* call. So we need to if constexpr whether or not we're */		\
+    /* being evaluated in a constexpr context */			\
+    /* Because this is only a problem in C++20, we can use: */		\
+    __TAGGED_UNION_ONLY_CPP20_PLUS(if constexpr(!std::is_constant_evaluated()) {) \
+				   __TAGGED_UNION_UNREACHABLE();	\
+				   __TAGGED_UNION_ONLY_CPP20_PLUS(})	\
+      } else {								\
     using __typePunt = BOOST_PP_TUPLE_ELEM(3, 1, triplet);		\
     attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet).~__typePunt();		\
   })
@@ -262,26 +270,23 @@ namespace tagged_union::detail {
   /* Overload constructor */						\
   __TAGGED_UNION_STRIP_PARENS(BOOST_PP_IF(				\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),		\
-    (constexpr struct_name(OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
+  (									\
+     constexpr struct_name(OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
     BOOST_NOEXCEPT : storage(Storage{					\
 	.type = BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()	\
 	  .attr = AttrUnion {.__empty = {}}				\
       }) {}),								\
-  (/* Note: These are marked as constepxr REGARDLESS of the */		\
-   /* constexpr-ness of the values' copy/move constructors */		\
-   /* It's impossible to SFINAE these according to the C++ standard: */	\
-   /*     https://eel.is/c++draft/class.copy.ctor#1 */			\
-   /* For this specific reason, in this SPECIFIC scenario, the */	\
-   /* constexpr will be automatically dropped if the value */		\
-   /* doesn't have the correct trait. */				\
-   constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) const& value, \
+  (/* We template these to defer the constexpr check */			\
+   template<typename DummyDeffer>					\
+   constexpr struct_name(DummyDeffer const& value,			\
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
    noexcept(::tagged_union::detail::UseNoexceptCopyConstructor<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>) \
    : storage{								\
      BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()		\
      AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value}		\
    } {}									\
-   constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) && value,	\
+   template<typename DummyDeffer>					\
+   constexpr struct_name(DummyDeffer && value,				\
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
    noexcept(::tagged_union::detail::UseNoexceptMoveConstructor<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>) \
    : storage{								\

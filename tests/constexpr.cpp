@@ -53,5 +53,14 @@ int main() {
   Hard hard = Hard::create<Hard::STRING>(std::string(data_ss));
   size_t hard_size = v_size(hard);
   std::cout << "Hard: " << hard_size << " chars" << std::endl;
+
+  // Now, just because we can't constexpr-create a string-variant Hard,
+  // doesn't mean we can't constexpr-create a different variant.
+  //
+  // This is only true in C++20 though, since we still have the
+  // non-trivial destructor check.
+  __TAGGED_UNION_ONLY_CPP20_PLUS(constexpr)
+    Hard hard2 = Hard::create<Hard::INTEGER>(100);
   
+  std::cout << "Hard2: " << hard2.integer() << " integer" << std::endl;
 }
