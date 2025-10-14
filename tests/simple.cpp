@@ -4,16 +4,16 @@
 
 struct Variant {
   TAGGED_UNION(Variant,
-	       (STRING, std::string, string),
-	       (INTEGER, int, integer))
+	       (SHORT, short, sh),
+	       (INTEGER, int, in))
 };
 
 int main() {
-  Variant v = Variant::create<Variant::STRING>("hello world!");
+  Variant v = Variant::create<Variant::SHORT>(101);
 
-  std::cout << v.string() << std::endl;
+  std::cout << v.sh() << std::endl;
 
   v.set_type_and_data<Variant::INTEGER>(42);
   
-  std::cout << v.integer() << std::endl;
+  std::cout << v.in() << std::endl;
 }
