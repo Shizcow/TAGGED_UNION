@@ -177,51 +177,51 @@ namespace tagged_union::detail {
   /* like a int const*, then we'll get a duplicate const error */	\
   [[nodiscard]] constexpr std::add_const_t<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>& BOOST_PP_TUPLE_ELEM(3, 2, triplet)() const { \
     check_type(BOOST_PP_TUPLE_ELEM(3, 0, triplet));			\
-    return attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet);			\
+    return storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet);			\
   }									\
   [[nodiscard]] constexpr BOOST_PP_TUPLE_ELEM(3, 1, triplet)& BOOST_PP_TUPLE_ELEM(3, 2, triplet)() { \
     check_type(BOOST_PP_TUPLE_ELEM(3, 0, triplet));			\
-    return attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet);			\
+    return storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet);		\
   })
 #define TAGGED_UNION_COPY_CONS_CASE_FROM_TRIPLET(r, union_name, triplet) \
   case BOOST_PP_TUPLE_ELEM(3, 0, triplet):				\
   BOOST_PP_IF(								\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
   /* emit nothing if void*/,						\
-  new (&attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(other.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet))); \
+  new (&storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(other.storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet))); \
   break;
 #define TAGGED_UNION_MOVE_CONS_CASE_FROM_TRIPLET(r, union_name, triplet) \
   case BOOST_PP_TUPLE_ELEM(3, 0, triplet):				\
   BOOST_PP_IF(								\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
   /* emit nothing if void*/,						\
-  new (&attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(std::move(other.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)))); \
+  new (&storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(std::move(other.storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)))); \
   break;
 #define TAGGED_UNION_MOVE_ASSGN_CASE_FROM_TRIPLET(r, union_name, triplet) \
   case BOOST_PP_TUPLE_ELEM(3, 0, triplet):				\
   BOOST_PP_IF(								\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
   /* emit nothing if void*/,						\
-  attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(other.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet))); \
+  storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(other.storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet))); \
   break;
 #define TAGGED_UNION_COPY_ASSGN_CASE_FROM_TRIPLET(r, union_name, triplet) \
   case BOOST_PP_TUPLE_ELEM(3, 0, triplet):				\
   BOOST_PP_IF(								\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
   /* emit nothing if void*/,						\
-  attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = other.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)); \
+  storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = other.storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)); \
   break;
 #define TAGGED_UNION_DTOR_SWITCH_FROM_TRIPLET(r, union_name, triplet)	\
   BOOST_PP_IF(							\
-  __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
+								__TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)), \
   /* emit nothing if void... we don't even need to print the case label*/, \
   case (::tagged_union::detail::constexpr_if_trivial_destructor<BOOST_PP_TUPLE_ELEM(3, 1, triplet)> \
 	(BOOST_PP_TUPLE_ELEM(3, 0, triplet), max_val+1+BOOST_PP_TUPLE_ELEM(3, 0, triplet))): \
   if constexpr(std::is_trivially_destructible_v<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>) { \
-    __TAGGED_UNION_UNREACHABLE();							\
+    __TAGGED_UNION_UNREACHABLE();					\
   } else {								\
-  using __typePunt = BOOST_PP_TUPLE_ELEM(3, 1, triplet);		\
-  attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet).~__typePunt();		\
+    using __typePunt = BOOST_PP_TUPLE_ELEM(3, 1, triplet);		\
+    attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet).~__typePunt();		\
   })
 #define TAGGED_UNION_SETTER_FROM_TRIPLET(r, data, triplet)	\
   BOOST_PP_IF(							\
@@ -231,40 +231,42 @@ namespace tagged_union::detail {
     /* Since this is a voidy type the hot path is always destroying */	\
     /* AKA we can just: */						\
     this->~ThisType();							\
-    type = BOOST_PP_TUPLE_ELEM(3, 0, triplet);				\
+    storage.type = BOOST_PP_TUPLE_ELEM(3, 0, triplet);			\
   },									\
   void set_type_and_data_impl(BOOST_PP_TUPLE_ELEM(3, 1, triplet) const& value, OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>) BOOST_NOEXCEPT { \
     /* Because there is data here, we shouldn't use the same hot-path assumption as in the void case */ \
     /* Why? Because destroy+placement new is likely slower than copy/move assignment */	\
-    if (type == BOOST_PP_TUPLE_ELEM(3, 0, triplet)) {			\
+    if (storage.type == BOOST_PP_TUPLE_ELEM(3, 0, triplet)) {		\
       /* If same type, use assignment */				\
-      attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value;			\
+      storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value;		\
     } else {								\
       /* Otherwise, destruct and the use placement-new. */		\
       /* The idea is we don't want to move on top of uninit'd data */	\
       /* since the destination may have a non-trivial assignment */	\
       this->~ThisType();						\
-      new (&attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(value); \
+      new (&storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(value); \
     }									\
-    type = BOOST_PP_TUPLE_ELEM(3, 0, triplet);				\
+    storage.type = BOOST_PP_TUPLE_ELEM(3, 0, triplet);			\
   }									\
   void set_type_and_data_impl(BOOST_PP_TUPLE_ELEM(3, 1, triplet) && value, OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>) BOOST_NOEXCEPT { \
     /* Same shenanigans as above except with std::move) */		\
-    if (type == BOOST_PP_TUPLE_ELEM(3, 0, triplet)) {			\
-      attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value);	\
+    if (storage.type == BOOST_PP_TUPLE_ELEM(3, 0, triplet)) {		\
+      storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value); \
     } else {								\
       this->~ThisType();						\
-      new (&attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(std::move(value)); \
+      new (&storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(std::move(value)); \
     }									\
-    type = BOOST_PP_TUPLE_ELEM(3, 0, triplet);				\
+    storage.type = BOOST_PP_TUPLE_ELEM(3, 0, triplet);			\
   })
 #define TAGGED_UNION_CONSTRUCTOR_FROM_TRIPLET(r, struct_name, triplet)	\
   /* Overload constructor */						\
-  __TAGGED_UNION_STRIP_PARENS(BOOST_PP_IF(						\
-  __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
-  (constexpr struct_name(OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)		\
-   BOOST_NOEXCEPT : type{BOOST_PP_TUPLE_ELEM(3, 0, triplet)} BOOST_PP_COMMA()\
-   attr{AttrUnion {.__empty = {}}} {}),					\
+  __TAGGED_UNION_STRIP_PARENS(BOOST_PP_IF(				\
+  __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),		\
+    (constexpr struct_name(OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
+    BOOST_NOEXCEPT : storage(Storage{					\
+	.type = BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()	\
+	  .attr = AttrUnion {.__empty = {}}				\
+      }) {}),								\
   (/* Note: These are marked as constepxr REGARDLESS of the */		\
    /* constexpr-ness of the values' copy/move constructors */		\
    /* It's impossible to SFINAE these according to the C++ standard: */	\
@@ -274,19 +276,23 @@ namespace tagged_union::detail {
    /* doesn't have the correct trait. */				\
    constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) const& value, \
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
-   BOOST_NOEXCEPT : type{BOOST_PP_TUPLE_ELEM(3, 0, triplet)} BOOST_PP_COMMA() \
-   attr{AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value}} {}	\
+   BOOST_NOEXCEPT : storage(Storage{					\
+       .type = BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()	\
+       .attr = AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value}	\
+     }) {}								\
    constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) && value,	\
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
-   BOOST_NOEXCEPT : type{BOOST_PP_TUPLE_ELEM(3, 0, triplet)} BOOST_PP_COMMA() \
-   attr{AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value)}} {})))
+   BOOST_NOEXCEPT : storage(Storage{					\
+       .type = BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()	\
+       .attr = AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value)} \
+     }) {})))
 #define TAGGED_UNION_ATTREQ_FROM_TRIPLET(r, data, triplet)		\
   case BOOST_PP_TUPLE_ELEM(3, 0, triplet):				\
   BOOST_PP_IF(							\
   __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
   /* Emit nothing, since we're going to return true*/,			\
-  return attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)			\
-  == other.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet));
+  return storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)			\
+  == other.storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet));
 #define TAGGED_UNION(struct_name, triplets...)				\
   public:								\
   using ThisType = struct_name;						\
@@ -321,16 +327,50 @@ namespace tagged_union::detail {
   /* All these members need to be public, else this is not */		\
   /* an aggregate type and the zero-cost abstraction fails. */		\
   /* Just don't go messing with the members directly, please. */	\
-  Type type;								\
-  AttrUnion attr;							\
+  /*                                                          */	\
+  /* We also sub-class out a container for type/attr in order */	\
+  /* to allow for destructor erasure if needed. This allows */		\
+  /* simple TAGGED_UNIONS to be constexpr-able even in C++17 */		\
+  template <bool UseExplicitDestructor, bool DummyDefer>		\
+  struct StorageImpl;							\
+									\
+  template <bool DummyDefer>						\
+  struct StorageImpl<false, DummyDefer> {				\
+    Type type;								\
+    AttrUnion attr;							\
+  };									\
+									\
+  template <bool DummyDefer>						\
+  struct StorageImpl<true, DummyDefer> {				\
+    Type type;								\
+    AttrUnion attr;							\
+    __TAGGED_UNION_ONLY_CPP20_PLUS(constexpr)				\
+    ~StorageImpl()							\
+      noexcept(::tagged_union::detail::UseNoexceptDestructor<		\
+	       BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH			\
+				 (TAGGED_UNION_TYPE_PACK_FROM_TRIPLET,	\
+				  _,					\
+				  BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) { \
+      auto constexpr max_val = TAGGED_UNION_MAX_VARIANT_ENUM(BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
+      switch(type) {							\
+	BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_DTOR_SWITCH_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
+      default:;								\
+      }									\
+    }									\
+  };									\
+									\
+  using Storage = StorageImpl<::tagged_union::detail::UseExplicitDestructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>, true>; \
+									\
+  Storage storage;							\
+									\
   /* Accessors and manilupators */					\
   constexpr Type const& get_type() const BOOST_NOEXCEPT {		\
-    return type;							\
+    return storage.type;						\
   }									\
   template<Type T>							\
   struct OfType { static constexpr Type type = T; };			\
   constexpr void check_type(Type const& expected_type) const {		\
-    assert(type == expected_type);					\
+    assert(storage.type == expected_type);				\
   }									\
   /* So, C++ handles aggregate status... weirdly. */			\
   /* In C++17, the correct thing to do is delete the default */		\
@@ -347,24 +387,30 @@ namespace tagged_union::detail {
   /* Similar logic applies to the others... SFINAE time           */	\
   struct_name(std::enable_if_t<::tagged_union::detail::UseCopyConstructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>, struct_name> const& other) noexcept				\
     (::tagged_union::detail::UseNoexceptCopyConstructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) \
-    : type(other.type), attr(/* Deffer */AttrUnion{.__empty = {}}) {	\
-    switch (type) {							\
+    : storage(Storage{							\
+	.type = other.storage.type,					\
+	  .attr = /* Deffer */AttrUnion{.__empty = {}}			\
+      }) {								\
+    switch (storage.type) {						\
       BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_COPY_CONS_CASE_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
     }									\
   }									\
   struct_name(std::enable_if_t<::tagged_union::detail::UseMoveConstructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>, struct_name>&& other) noexcept				\
     (::tagged_union::detail::UseNoexceptMoveConstructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) \
-    : type(std::move(other.type)), attr(/* Deffer */AttrUnion{.__empty = {}}) {	\
-    switch (type) {							\
+    : storage(Storage{							\
+	.type = std::move(other.storage.type),				\
+	  .attr = /* Deffer */AttrUnion{.__empty = {}}			\
+      }) {								\
+    switch (storage.type) {						\
       BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_MOVE_CONS_CASE_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
     }									\
   }									\
   std::enable_if_t<::tagged_union::detail::UseCopyAssigner<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>, struct_name>& operator=(struct_name const& other) \
     noexcept								\
     (::tagged_union::detail::UseNoexceptCopyAssigner<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>){	\
-    if (type == other.type) {						\
+    if (storage.type == other.storage.type) {						\
       /* In-place assignment*/						\
-      switch(type) {							\
+      switch(storage.type) {							\
 	BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_COPY_ASSGN_CASE_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
       }									\
     } else {								\
@@ -376,9 +422,9 @@ namespace tagged_union::detail {
   }									\
   std::enable_if_t<::tagged_union::detail::UseMoveAssigner<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>, struct_name>& operator=(struct_name&& other) noexcept			\
     (::tagged_union::detail::UseNoexceptAssigner<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) { \
-    if (type == other.type) {						\
+    if (storage.type == other.storage.type) {						\
       /* In-place move assignment*/					\
-      switch(type) {							\
+      switch(storage.type) {							\
 	BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_MOVE_ASSGN_CASE_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
       }									\
     } else {								\
@@ -391,10 +437,10 @@ namespace tagged_union::detail {
 									\
   /* Plus, to help (default isn't available pre-C++20): */		\
   constexpr bool operator==(const struct_name& other) BOOST_NOEXCEPT {	\
-    if(type != other.type)						\
+    if(storage.type != other.storage.type)				\
       return false;							\
     /* Since we know the types are equal, we need to: */		\
-    switch(type){							\
+    switch(storage.type){						\
       BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_ATTREQ_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
 	}								\
     /* Which won't be exhaustive if there are voids be exhaustive */	\
@@ -405,10 +451,10 @@ namespace tagged_union::detail {
   }									\
   /* And const versions of */						\
   constexpr bool operator==(const struct_name& other) const BOOST_NOEXCEPT { \
-    if(type != other.type)						\
+    if(storage.type != other.storage.type)				\
       return false;							\
     /* Since we know the types are equal, we need to: */		\
-    switch(type){							\
+    switch(storage.type){						\
       BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_ATTREQ_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
 	}								\
     /* Which aught be exhaustive */					\
@@ -448,26 +494,7 @@ namespace tagged_union::detail {
   BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_SETTER_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
   BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_CONSTRUCTOR_FROM_TRIPLET, struct_name, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
 									\
-  /* Destructor requires manual management */				\
-  /* We use some tricks to make this zero-cost, including: */		\
-  /* - Out of band case labels */					\
-  /* - Procedurally generated out-of-band values */			\
-  /* - constexpr if spam */						\
-  /* - __TAGGED_UNION_UNREACHABLE spam */				\
-  __TAGGED_UNION_ONLY_CPP20_PLUS(constexpr)				\
-  ~struct_name() noexcept(::tagged_union::detail::UseNoexceptDestructor< \
-			  BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH	\
-					    (TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, \
-					     _,				\
-					     BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) { \
-    if constexpr (::tagged_union::detail::UseExplicitDestructor<BOOST_PP_SEQ_ENUM(BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_TYPE_PACK_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)))>) { \
-      auto constexpr max_val = TAGGED_UNION_MAX_VARIANT_ENUM(BOOST_PP_VARIADIC_TO_SEQ(triplets)); \
-      switch(type) {							\
-	BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_DTOR_SWITCH_FROM_TRIPLET, _, BOOST_PP_VARIADIC_TO_SEQ(triplets)) \
-      default:;								\
-      }									\
-    }									\
-  }
+  /* Destructor is entirely un-specified because we use Storage<_, _> */
 /*     TAGGED_UNION     */
 
 #endif // TAGGED_UNION_H
