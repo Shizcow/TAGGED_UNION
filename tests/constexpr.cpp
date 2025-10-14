@@ -46,4 +46,12 @@ int main() {
   constexpr Medium medium = Medium::create<Medium::STRING>(data_cstr);
   constexpr size_t medium_size = v_size(medium);
   std::cout << "Medium: " << medium_size << " chars" << std::endl;
+
+  // Even into C++20, we can't create a constexpr std::string:
+  std::string data_ss(data_cstr);
+
+  Hard hard = Hard::create<Hard::STRING>(std::string(data_ss));
+  size_t hard_size = v_size(hard);
+  std::cout << "Hard: " << hard_size << " chars" << std::endl;
+  
 }

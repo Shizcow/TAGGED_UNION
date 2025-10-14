@@ -3,7 +3,7 @@ project(tagged_union LANGUAGES CXX)
 
 option(TAGGED_UNION_BUILD_TESTS "Build tests with CTest" ON)
 
-set(CMAKE_CXX_STANDARD 17) # There's one test that won't build in C++17
+set(CMAKE_CXX_STANDARD 17)
 
 include(ExternalProject)
 

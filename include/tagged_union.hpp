@@ -276,13 +276,15 @@ namespace tagged_union::detail {
    /* doesn't have the correct trait. */				\
    constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) const& value, \
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
-   BOOST_NOEXCEPT : storage{						\
+   noexcept(::tagged_union::detail::UseNoexceptCopyConstructor<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>) \
+   : storage{								\
      BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()		\
      AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value}		\
    } {}									\
    constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) && value,	\
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
-   BOOST_NOEXCEPT : storage{						\
+   noexcept(::tagged_union::detail::UseNoexceptMoveConstructor<BOOST_PP_TUPLE_ELEM(3, 1, triplet)>) \
+   : storage{								\
      BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()		\
        AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value)} \
    } {})))
