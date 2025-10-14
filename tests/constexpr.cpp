@@ -12,11 +12,14 @@ struct Medium {
 	       (STRING, std::string_view, string),
 	       (INTEGER, int, integer))
 };
-// struct Hard {
-//   TAGGED_UNION(Hard,
-// 	       (STRING, std::string, string),
-// 	       (INTEGER, int, integer))
-// };
+struct Hard {
+  // Even in C++17, simply declaring this class
+  // should not generate any constexpr-related
+  // warnings.
+  TAGGED_UNION(Hard,
+	       (STRING, std::string, string),
+	       (INTEGER, int, integer))
+};
 
 template<typename T>
 constexpr size_t v_size(T const& v) {

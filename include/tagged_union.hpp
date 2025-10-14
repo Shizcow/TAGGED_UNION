@@ -276,22 +276,22 @@ namespace tagged_union::detail {
    /* doesn't have the correct trait. */				\
    constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) const& value, \
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
-   BOOST_NOEXCEPT : storage(Storage{					\
-       .type = BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()	\
-       .attr = AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value}	\
-     }) {}								\
+   BOOST_NOEXCEPT : storage{						\
+     BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()		\
+     AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = value}		\
+   } {}									\
    constexpr struct_name(BOOST_PP_TUPLE_ELEM(3, 1, triplet) && value,	\
 			 OfType<BOOST_PP_TUPLE_ELEM(3, 0, triplet)>)	\
-   BOOST_NOEXCEPT : storage(Storage{					\
-       .type = BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()	\
-       .attr = AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value)} \
-     }) {})))
+   BOOST_NOEXCEPT : storage{						\
+     BOOST_PP_TUPLE_ELEM(3, 0, triplet) BOOST_PP_COMMA()		\
+       AttrUnion {.BOOST_PP_TUPLE_ELEM(3, 2, triplet) = std::move(value)} \
+   } {})))
 #define TAGGED_UNION_ATTREQ_FROM_TRIPLET(r, data, triplet)		\
   case BOOST_PP_TUPLE_ELEM(3, 0, triplet):				\
-  BOOST_PP_IF(							\
-  __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),				\
+  BOOST_PP_IF(								\
+  __TAGGED_UNION_IS_VOID(BOOST_PP_TUPLE_ELEM(3, 1, triplet)),		\
   /* Emit nothing, since we're going to return true*/,			\
-  return storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)			\
+  return storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet)		\
   == other.storage.attr.BOOST_PP_TUPLE_ELEM(3, 2, triplet));
 #define TAGGED_UNION(struct_name, triplets...)				\
   public:								\
@@ -331,7 +331,7 @@ namespace tagged_union::detail {
   /* We also sub-class out a container for type/attr in order */	\
   /* to allow for destructor erasure if needed. This allows */		\
   /* simple TAGGED_UNIONS to be constexpr-able even in C++17 */		\
-  template <bool UseExplicitDestructor, bool DummyDefer>		\
+  template <bool UseExplicitDestructor, bool DummyDefer> \
   struct StorageImpl;							\
 									\
   template <bool DummyDefer>						\
