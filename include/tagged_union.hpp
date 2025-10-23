@@ -82,17 +82,17 @@
 
 #define __TAGGED_UNION_IS_VOID_HELPER_void
 
+#define TAGGED_UNION_TAGNAME(triplet)		\
+  BOOST_PP_TUPLE_ELEM(0, triplet)
+
 #define TAGGED_UNION_TUPLETYPE(triplet)					\
   __TAGGED_UNION_STRIP_PARENS(BOOST_PP_TUPLE_ELEM(3, 1, triplet))
-
-#define TAGGED_UNION_TUPLETYPE_IS_VOID(triplet)			\
-  __TAGGED_UNION_IS_VOID(TAGGED_UNION_TUPLETYPE(triplet))
 
 #define TAGGED_UNION_FIELDNAME(triplet)					\
   BOOST_PP_TUPLE_ELEM(BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(triplet)), triplet)
 
-#define TAGGED_UNION_TAGNAME(triplet)		\
-  BOOST_PP_TUPLE_ELEM(3, 0, triplet)
+#define TAGGED_UNION_TUPLETYPE_IS_VOID(triplet)			\
+  __TAGGED_UNION_IS_VOID(TAGGED_UNION_TUPLETYPE(triplet))
 
 namespace tagged_union::detail {
   // There's no need to pull in std::variant just for an std::monostate
@@ -175,9 +175,9 @@ namespace tagged_union::detail {
 #define TAGGED_UNION_TUPLE_MIDDLE_TO_SEQ(tuple)				\
   BOOST_PP_TUPLE_REMOVE(BOOST_PP_TUPLE_REMOVE(tuple, BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(tuple))), 0)
 #define TAGGED_UNION_MIDDLE_WRAP(r, data, tuple)			\
-  ((BOOST_PP_TUPLE_ELEM(0, tuple),					\
+  ((TAGGED_UNION_TAGNAME(tuple),					\
     TAGGED_UNION_TUPLE_MIDDLE_TO_SEQ(tuple),				\
-    BOOST_PP_TUPLE_ELEM(BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(tuple)), tuple)))
+    TAGGED_UNION_FIELDNAME(tuple)))
 #define TAGGED_UNION_VARIADIC_TO_TRIPLETS(triplets...)		\
   BOOST_PP_SEQ_FOR_EACH(TAGGED_UNION_MIDDLE_WRAP, _,		\
 			BOOST_PP_VARIADIC_TO_SEQ(triplets))
@@ -186,7 +186,7 @@ namespace tagged_union::detail {
 #define TAGGED_UNION_ENUM_FROM_TRIPLET(r, data, triplet)	\
   TAGGED_UNION_TAGNAME(triplet),
 #define TAGGED_UNION_MAX_VARIANT_ENUM(triplets)				\
-  BOOST_PP_TUPLE_ELEM(3, 0, BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(triplets)))
+  TAGGED_UNION_TAGNAME(BOOST_PP_SEQ_HEAD(BOOST_PP_SEQ_REVERSE(triplets)))
 #define TAGGED_UNION_TYPE_PACK_FROM_TRIPLET(r, data, triplet)	\
   BOOST_PP_IF							\
   (TAGGED_UNION_TUPLETYPE_IS_VOID(triplet),			\
@@ -288,7 +288,8 @@ namespace tagged_union::detail {
 	/* The idea is we don't want to move on top of uninit'd data */ \
 	/* since the destination may have a non-trivial assignment */	\
 	this->~ThisType();						\
-	new (&storage.attr.TAGGED_UNION_FIELDNAME(triplet)) TAGGED_UNION_TUPLETYPE(triplet)(value); \
+	new (&storage.attr.TAGGED_UNION_FIELDNAME(triplet))		\
+	  TAGGED_UNION_TUPLETYPE(triplet)(value);			\
       }									\
       storage.type = TAGGED_UNION_TAGNAME(triplet);			\
     }									\
@@ -298,7 +299,8 @@ namespace tagged_union::detail {
 	  storage.attr.TAGGED_UNION_FIELDNAME(triplet) = std::move(value); \
 	} else {							\
 	  this->~ThisType();						\
-	  new (&storage.attr.TAGGED_UNION_FIELDNAME(triplet)) BOOST_PP_TUPLE_ELEM(3, 1, triplet)(std::move(value)); \
+	  new (&storage.attr.TAGGED_UNION_FIELDNAME(triplet))		\
+	    TAGGED_UNION_TUPLETYPE(triplet)(std::move(value));		\
 	}								\
 	storage.type = TAGGED_UNION_TAGNAME(triplet);			\
       })))
@@ -316,7 +318,7 @@ namespace tagged_union::detail {
      template<typename DummyDeffer>					\
      constexpr struct_name(DummyDeffer const& value,			\
 			   OfType<TAGGED_UNION_TAGNAME(triplet)>)	\
-     noexcept(::tagged_union::detail::UseNoexceptCopyConstructor<__TAGGED_UNION_STRIP_PARENS(BOOST_PP_TUPLE_ELEM(3, 1, triplet)>)) \
+     noexcept(::tagged_union::detail::UseNoexceptCopyConstructor<TAGGED_UNION_TUPLETYPE(triplet)>) \
      : storage{								\
        TAGGED_UNION_TAGNAME(triplet) BOOST_PP_COMMA()			\
        AttrUnion {.TAGGED_UNION_FIELDNAME(triplet) = value}		\
@@ -324,7 +326,7 @@ namespace tagged_union::detail {
      template<typename DummyDeffer>					\
      constexpr struct_name(DummyDeffer && value,			\
 			   OfType<TAGGED_UNION_TAGNAME(triplet)>)	\
-     noexcept(::tagged_union::detail::UseNoexceptMoveConstructor<__TAGGED_UNION_STRIP_PARENS(BOOST_PP_TUPLE_ELEM(3, 1, triplet)>)) \
+     noexcept(::tagged_union::detail::UseNoexceptMoveConstructor<TAGGED_UNION_TUPLETYPE(triplet)>) \
      : storage{								\
        TAGGED_UNION_TAGNAME(triplet) BOOST_PP_COMMA()			\
 	 AttrUnion {.TAGGED_UNION_FIELDNAME(triplet) = std::move(value)} \
