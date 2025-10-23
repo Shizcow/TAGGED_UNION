@@ -110,15 +110,6 @@ namespace tagged_union::detail {
   }
 #endif
 
-  template<typename A, typename B, typename C>
-  auto constexpr constexpr_if_trivial_destructor(B b, C c) {
-    if constexpr(std::is_trivially_destructible_v<A>) {
-      return b;
-    } else {
-      return c;
-    }
-  }
-
   // At least one type is not trivially destructible
   template <typename... Ts>
   static constexpr bool UseExplicitDestructor = (... || !std::is_trivially_destructible_v<Ts>);
@@ -259,8 +250,9 @@ namespace tagged_union::detail {
   (BOOST_PP_IF								\
    (TAGGED_UNION_TUPLETYPE_IS_VOID(triplet),				\
     (/* emit nothing if void... we don't even need to print the case label*/), \
-    (case (::tagged_union::detail::constexpr_if_trivial_destructor<TAGGED_UNION_TUPLETYPE(triplet)> \
-	   (max_val+1+TAGGED_UNION_TAGNAME(triplet), TAGGED_UNION_TAGNAME(triplet))): \
+    (case (TAGGED_UNION_TAGNAME(triplet)				\
+	   + std::is_trivially_destructible_v<TAGGED_UNION_TUPLETYPE(triplet)> \
+	   ? max_val+1 : 0):						\
      if constexpr(std::is_trivially_destructible_v<TAGGED_UNION_TUPLETYPE(triplet)>) { \
        /* We want to signal to the compiler that this path will never */ \
        /* be taken for optimization purposes. However, if we include */	\
