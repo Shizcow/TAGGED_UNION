@@ -1,7 +1,7 @@
 ## TAGGED_UNION
 
 A performant tagged union implementation for C++17 and above.
-It supports void types, multiple same-type variants, and is faster than either `boost::variant` or `std::variant`.
+It supports complex types, data-less variants, multiple same-type variants, and is faster than either `boost::variant` or `std::variant`.
 Tagged unions are never-empty, but support `placement new` style empty initialization hacks so long as each variant type is trivially constructable and destructable (or another never-empty-able tagged union) -- see `tests/empty.cpp`.
 
 ### Quick Start
@@ -41,7 +41,7 @@ struct Dimension {
   TAGGED_UNION(Property,
                (WIDTH, float, width),
                (HEIGHT, float, height),
-			   (NULL, void, void)
+			   (NULL, void, void))
 };
 ```
 
