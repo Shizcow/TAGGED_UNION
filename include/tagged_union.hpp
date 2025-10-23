@@ -15,6 +15,7 @@
 #include <boost/assert.hpp>
 
 #include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/comparison/equal.hpp>
 #include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/facilities/empty.hpp>
 #include <boost/preprocessor/facilities/is_empty.hpp>
