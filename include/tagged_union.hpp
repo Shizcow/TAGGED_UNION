@@ -265,6 +265,7 @@ namespace tagged_union::detail {
      } else {								\
        using __typePunt = TAGGED_UNION_TUPLETYPE(triplet);		\
        attr.TAGGED_UNION_FIELDNAME(triplet).~__typePunt();		\
+       break;								\
      })))
 #define TAGGED_UNION_SETTER_FROM_TRIPLET(r, data, triplet)		\
   __TAGGED_UNION_STRIP_PARENS						\
